@@ -78,10 +78,10 @@ export default function Home() {
           Math.abs(mouse.y - this.y) < range
         ) {
           if (this.radius < maxRadius) {
-            this.radius += 5;
+            this.radius += 10;
           }
         } else if (this.radius > this.minRadius) {
-          this.radius -= 2.5;
+          this.radius -= 5;
         }
         this.draw();
       }
@@ -91,8 +91,8 @@ export default function Home() {
       let radius = Math.random() * 20 + 5;
       let x = Math.random() * (innerWidth - radius * 2) + radius;
       let y = Math.random() * (innerHeight - radius * 2) + radius;
-      let dx = (Math.random() - 0.5) * 10;
-      let dy = (Math.random() - 0.5) * 10;
+      let dx = (Math.random() - 0.5) * 5;
+      let dy = (Math.random() - 0.5) * 5;
       circleArray.push(new Circle(x, y, dx, dy, radius));
     }
     function animate() {
@@ -108,8 +108,8 @@ export default function Home() {
         let radius = Math.random() * 20 + 5;
         let x = Math.random() * (innerWidth - radius * 2) + radius;
         let y = Math.random() * (innerHeight - radius * 2) + radius;
-        let dx = (Math.random() - 0.5) * 10;
-        let dy = (Math.random() - 0.5) * 10;
+        let dx = (Math.random() - 0.5) * 5;
+        let dy = (Math.random() - 0.5) * 5;
         circleArray.push(new Circle(x, y, dx, dy, radius));
       }
     }
