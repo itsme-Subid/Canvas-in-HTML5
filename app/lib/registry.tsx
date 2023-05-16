@@ -16,13 +16,13 @@ const GlobalStyle = createGlobalStyle`
     --secondary-color: 253 192 102;
     --success-color: 3 179 10;
     --danger-color: 255 0 0;
-    scroll-behavior: smooth;
   }
   ::-webkit-scrollbar {
     width: 0;
   }
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
   }
   html, body {
     overflow-x: hidden;

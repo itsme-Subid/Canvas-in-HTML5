@@ -5,6 +5,10 @@ import styled from "styled-components";
 const Canvas = styled.canvas``;
 
 export default function Home() {
+  const randomIntFrom = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1) + min);
+  const randomFloatFrom = (min: number, max: number) =>
+    Math.random() * (max - min + 1) + min;
   useEffect(() => {
     const canvas = document.querySelector("canvas");
     if (!canvas) return;
@@ -29,7 +33,11 @@ export default function Home() {
     };
     let maxRadius = 100;
     let range = 100;
+    let gravity = 1;
+    let friction = 0.9;
+    let numCircles = 50;
     let colors = ["#8ecae6", "#219ebc", "#023047", "#ffb703", "#fb8500"];
+    let circles: Circle[] = [];
     if (!ctx) return;
     class Circle {
       x: number;
@@ -63,10 +71,15 @@ export default function Home() {
       }
       update() {
         if (this.x + this.radius > innerWidth || this.x - this.radius < 0) {
-          this.dx = -this.dx;
+          this.dx = -this.dx * friction;
         }
-        if (this.y + this.radius > innerHeight || this.y - this.radius < 0) {
-          this.dy = -this.dy;
+        if (
+          this.y + this.radius + this.dy > innerHeight ||
+          this.y - this.radius < 0
+        ) {
+          this.dy = -this.dy * friction;
+        } else {
+          this.dy += gravity;
         }
         this.x += this.dx;
         this.y += this.dy;
@@ -86,33 +99,26 @@ export default function Home() {
         this.draw();
       }
     }
-    let circleArray: Circle[] = [];
-    for (let i = 0; i < 200; i++) {
-      let radius = Math.random() * 20 + 5;
-      let x = Math.random() * (innerWidth - radius * 2) + radius;
-      let y = Math.random() * (innerHeight - radius * 2) + radius;
-      let dx = (Math.random() - 0.5) * 5;
-      let dy = (Math.random() - 0.5) * 5;
-      circleArray.push(new Circle(x, y, dx, dy, radius));
+    function init() {
+      circles = [];
+      for (let i = 0; i < numCircles; i++) {
+        let radius = Math.random() * 20 + 5;
+        let x = randomIntFrom(radius, innerWidth - radius * 2);
+        let y = randomIntFrom(radius, innerHeight - radius * 2);
+        let dx = randomFloatFrom(-2, 2);
+        let dy = randomFloatFrom(-2, 2);
+        circles.push(new Circle(x, y, dx, dy, radius));
+      }
     }
     function animate() {
       requestAnimationFrame(animate);
-      ctx?.clearRect(0, 0, innerWidth, innerHeight);
-      for (let i = 0; i < circleArray.length; i++) {
-        circleArray[i].update();
+      if (!ctx) return;
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (let i = 0; i < circles.length; i++) {
+        circles[i].update();
       }
     }
-    function init() {
-      circleArray = [];
-      for (let i = 0; i < 200; i++) {
-        let radius = Math.random() * 20 + 5;
-        let x = Math.random() * (innerWidth - radius * 2) + radius;
-        let y = Math.random() * (innerHeight - radius * 2) + radius;
-        let dx = (Math.random() - 0.5) * 5;
-        let dy = (Math.random() - 0.5) * 5;
-        circleArray.push(new Circle(x, y, dx, dy, radius));
-      }
-    }
+    init();
     animate();
   }, []);
   return <Canvas />;
