@@ -95,9 +95,9 @@ export default function Home() {
       dx: number;
       dy: number;
       radius: number;
-      minRadius: number;
       color: string;
-      mass: number = 1;
+      mass: number;
+      // minRadius: number;
       constructor(
         x: number,
         y: number,
@@ -110,7 +110,7 @@ export default function Home() {
         this.dx = dx;
         this.dy = dy;
         this.radius = radius;
-        this.minRadius = radius;
+        this.mass = radius;
         this.color = randomColor(colors);
       }
       draw() {
