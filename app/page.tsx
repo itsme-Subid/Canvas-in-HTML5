@@ -5,25 +5,38 @@ import styled from "styled-components";
 const Canvas = styled.canvas``;
 
 export default function Home() {
-  const randomIntFrom = (min: number, max: number) =>
+  const randomIntFrom = (min: number, max: number): number =>
     Math.floor(Math.random() * (max - min + 1) + min);
-  const randomFloatFrom = (min: number, max: number) =>
+  const randomFloatFrom = (min: number, max: number): number =>
     Math.random() * (max - min + 1) + min;
+  const randomColor = (colors: string[]): string =>
+    colors[Math.floor(Math.random() * colors.length)];
+  const getDistance = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): number => {
+    let xDistance = x2 - x1;
+    let yDistance = y2 - y1;
+    return Math.sqrt(xDistance ** 2 + yDistance ** 2);
+  };
+  const rotate = (
+    velocity: { x: number; y: number },
+    angle: number
+  ): { x: number; y: number } => {
+    const rotatedVelocities = {
+      x: velocity.x * Math.cos(angle) - velocity.y * Math.sin(angle),
+      y: velocity.x * Math.sin(angle) + velocity.y * Math.cos(angle),
+    };
+    return rotatedVelocities;
+  };
   useEffect(() => {
     const canvas = document.querySelector("canvas");
     if (!canvas) return;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const ctx = canvas.getContext("2d");
-    window?.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      init();
-    });
-    window?.addEventListener("mousemove", ({ x, y }) => {
-      mouse.x = x;
-      mouse.y = y;
-    });
     let mouse: {
       x: number | undefined;
       y: number | undefined;
@@ -31,14 +44,51 @@ export default function Home() {
       x: undefined,
       y: undefined,
     };
-    let maxRadius = 100;
-    let range = 100;
-    let gravity = 1;
-    let friction = 0.9;
+    // let maxRadius = 100;
+    // let range = 100;
+    // let gravity = 1;
+    // let friction = 0.9;
     let numCircles = 50;
     let colors = ["#8ecae6", "#219ebc", "#023047", "#ffb703", "#fb8500"];
     let circles: Circle[] = [];
-    if (!ctx) return;
+    addEventListener("resize", (): void => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    });
+    addEventListener("mousemove", ({ x, y }): void => {
+      [mouse.x, mouse.y] = [x, y];
+    });
+    addEventListener("click", (): void => init());
+    const resolveCollision = (circle: Circle, otherCircle: Circle): void => {
+      const xVelocityDiff = circle.dx - otherCircle.dx;
+      const yVelocityDiff = circle.dy - otherCircle.dy;
+      const xDist = otherCircle.x - circle.x;
+      const yDist = otherCircle.y - circle.y;
+      if (xVelocityDiff * xDist + yVelocityDiff * yDist >= 0) {
+        const angle = -Math.atan2(
+          otherCircle.y - circle.y,
+          otherCircle.x - circle.x
+        );
+        const [m1, m2] = [circle.mass, otherCircle.mass];
+        const u1 = rotate({ x: circle.dx, y: circle.dy }, angle);
+        const u2 = rotate({ x: otherCircle.dx, y: otherCircle.dy }, angle);
+        const v1 = {
+          x: (u1.x * (m1 - m2)) / (m1 + m2) + (u2.x * 2 * m2) / (m1 + m2),
+          y: u1.y,
+        };
+        const v2 = {
+          x: (u2.x * (m1 - m2)) / (m1 + m2) + (u1.x * 2 * m2) / (m1 + m2),
+          y: u2.y,
+        };
+        const vFinal1 = rotate(v1, -angle);
+        const vFinal2 = rotate(v2, -angle);
+        circle.dx = vFinal1.x;
+        circle.dy = vFinal1.y;
+        otherCircle.dx = vFinal2.x;
+        otherCircle.dy = vFinal2.y;
+      }
+    };
     class Circle {
       x: number;
       y: number;
@@ -47,6 +97,7 @@ export default function Home() {
       radius: number;
       minRadius: number;
       color: string;
+      mass: number = 1;
       constructor(
         x: number,
         y: number,
@@ -60,7 +111,7 @@ export default function Home() {
         this.dy = dy;
         this.radius = radius;
         this.minRadius = radius;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.color = randomColor(colors);
       }
       draw() {
         if (!ctx) return;
@@ -69,44 +120,70 @@ export default function Home() {
         ctx.fillStyle = this.color;
         ctx.fill();
       }
-      update() {
+      update(circles: Circle[]) {
         if (this.x + this.radius > innerWidth || this.x - this.radius < 0) {
-          this.dx = -this.dx * friction;
+          this.dx = -this.dx;
+          // this.dx = -this.dx * friction;
         }
         if (
           this.y + this.radius + this.dy > innerHeight ||
           this.y - this.radius < 0
         ) {
-          this.dy = -this.dy * friction;
-        } else {
-          this.dy += gravity;
+          this.dy = -this.dy;
+        }
+        // if (this.y + this.radius + this.dy > innerHeight) {
+        //   this.dy = -this.dy * friction;
+        // } else {
+        //   this.dy += gravity;
+        // }
+        for (let i = 0; i < circles.length; i++) {
+          if (this === circles[i]) continue;
+          if (
+            getDistance(this.x, this.y, circles[i].x, circles[i].y) -
+              (this.radius + circles[i].radius) <
+            0
+          ) {
+            resolveCollision(this, circles[i]);
+          }
         }
         this.x += this.dx;
         this.y += this.dy;
-        // interactivity
-        if (
-          mouse.x &&
-          mouse.y &&
-          Math.abs(mouse.x - this.x) < range &&
-          Math.abs(mouse.y - this.y) < range
-        ) {
-          if (this.radius < maxRadius) {
-            this.radius += 10;
-          }
-        } else if (this.radius > this.minRadius) {
-          this.radius -= 5;
-        }
         this.draw();
+        // interactivity
+        // if (
+        //   mouse.x &&
+        //   mouse.y &&
+        //   Math.abs(mouse.x - this.x) < range &&
+        //   Math.abs(mouse.y - this.y) < range
+        // ) {
+        //   if (this.radius < maxRadius) {
+        //     this.radius += 10;
+        //   }
+        // } else if (this.radius > this.minRadius) {
+        //   this.radius -= 5;
+        // }
       }
     }
     function init() {
       circles = [];
       for (let i = 0; i < numCircles; i++) {
-        let radius = Math.random() * 20 + 5;
-        let x = randomIntFrom(radius, innerWidth - radius * 2);
-        let y = randomIntFrom(radius, innerHeight - radius * 2);
+        let radius = randomIntFrom(5, 20);
+        let x = randomIntFrom(radius, innerWidth - radius);
+        let y = randomIntFrom(radius, innerHeight - radius);
         let dx = randomFloatFrom(-2, 2);
         let dy = randomFloatFrom(-2, 2);
+        if (i !== 0) {
+          for (let j = 0; j < circles.length; j++) {
+            if (
+              getDistance(x, y, circles[j].x, circles[j].y) - radius * 2 <
+              0
+            ) {
+              x = randomIntFrom(radius, innerWidth - radius);
+              y = randomIntFrom(radius, innerHeight - radius);
+              j = -1;
+            }
+          }
+        }
         circles.push(new Circle(x, y, dx, dy, radius));
       }
     }
@@ -114,9 +191,7 @@ export default function Home() {
       requestAnimationFrame(animate);
       if (!ctx) return;
       ctx.clearRect(0, 0, innerWidth, innerHeight);
-      for (let i = 0; i < circles.length; i++) {
-        circles[i].update();
-      }
+      circles.forEach((circle) => circle.update(circles));
     }
     init();
     animate();
