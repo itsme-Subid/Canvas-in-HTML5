@@ -45,11 +45,17 @@ export default function Home() {
       y: undefined,
     };
     // let maxRadius = 100;
-    // let range = 100;
+    let range = 100;
     // let gravity = 1;
     // let friction = 0.9;
-    let numCircles = 50;
-    let colors = ["#8ecae6", "#219ebc", "#023047", "#ffb703", "#fb8500"];
+    let numCircles = 100;
+    let colors = [
+      "142 202 230",
+      "33 158 188",
+      "2 48 71",
+      "255 183 3",
+      "251 133 0",
+    ];
     let circles: Circle[] = [];
     addEventListener("resize", (): void => {
       canvas.width = window.innerWidth;
@@ -95,7 +101,8 @@ export default function Home() {
       dx: number;
       dy: number;
       radius: number;
-      color: string;
+      color: string = randomColor(colors);
+      opacity: number = 0;
       mass: number;
       // minRadius: number;
       constructor(
@@ -111,13 +118,14 @@ export default function Home() {
         this.dy = dy;
         this.radius = radius;
         this.mass = radius;
-        this.color = randomColor(colors);
       }
       draw() {
         if (!ctx) return;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        ctx.fillStyle = this.color;
+        ctx.strokeStyle = "rgb(" + this.color + ")";
+        ctx.stroke();
+        ctx.fillStyle = "rgb(" + this.color + "/ " + this.opacity + ")";
         ctx.fill();
       }
       update(circles: Circle[]) {
@@ -150,18 +158,25 @@ export default function Home() {
         this.y += this.dy;
         this.draw();
         // interactivity
-        // if (
-        //   mouse.x &&
-        //   mouse.y &&
-        //   Math.abs(mouse.x - this.x) < range &&
-        //   Math.abs(mouse.y - this.y) < range
-        // ) {
-        //   if (this.radius < maxRadius) {
-        //     this.radius += 10;
-        //   }
-        // } else if (this.radius > this.minRadius) {
-        //   this.radius -= 5;
-        // }
+        if (
+          mouse.x &&
+          mouse.y &&
+          Math.abs(mouse.x - this.x) < range &&
+          Math.abs(mouse.y - this.y) < range
+        ) {
+          if (this.opacity < 0.25) {
+            this.opacity += 0.075;
+          }
+          //   if (this.radius < maxRadius) {
+          //     this.radius += 10;
+          //   }
+        } else if (this.opacity > 0) {
+          this.opacity -= 0.02;
+          this.opacity = Math.max(0, this.opacity);
+          //   if (this.radius > this.minRadius) {
+          //     this.radius -= 10;
+          //   }
+        }
       }
     }
     function init() {
