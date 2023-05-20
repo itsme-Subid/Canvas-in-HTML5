@@ -48,7 +48,7 @@ export default function Home() {
     let range = 100;
     // let gravity = 1;
     // let friction = 0.9;
-    let numCircles = 100;
+    let numCircles = 25;
     let colors = [
       "142 202 230",
       "33 158 188",

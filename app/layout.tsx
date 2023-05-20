@@ -2,7 +2,7 @@ import { Poppins } from "next/font/google";
 import StyledComponentsRegistry from "./lib/registry";
 
 const poppins = Poppins({
-  subsets: ["latin-ext"],
+  subsets: ["latin"],
   variable: "--font-inter",
   style: ["normal", "italic"],
   weight: ["200", "400", "500", "600", "700"],
