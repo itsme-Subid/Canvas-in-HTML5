@@ -103,7 +103,7 @@ export default function Home() {
       radius: number;
       color: string = randomColor(colors);
       opacity: number = 0;
-      mass: number;
+      mass: number = 1;
       // minRadius: number;
       constructor(
         x: number,
@@ -117,7 +117,6 @@ export default function Home() {
         this.dx = dx;
         this.dy = dy;
         this.radius = radius;
-        this.mass = radius;
       }
       draw() {
         if (!ctx) return;
